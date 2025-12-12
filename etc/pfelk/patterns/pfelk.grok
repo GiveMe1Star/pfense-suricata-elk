@@ -1,0 +1,23 @@
+# pfelk.grok
+# PFELK
+PFELK (%{PFSENSE}|%{OPNSENSE}|%{RFC5424})
+
+# pfSense | OPNsense
+PFSENSE %{SYSLOGTIMESTAMP:[event][created]}\s(%{SYSLOGHOST:[log][syslog][hostname]}\s)?%{PROG:[log][syslog][appname]}(\[%{POSINT:[log][syslog][procid]:int}\])?\:\s%{GREEDYDATA:filter_message}
+OPNSENSE %{SYSLOGTIMESTAMP:[event][created]}\s%{SYSLOGHOST:[log][syslog][hostname]}\s%{PROG:[log][syslog][appname]}\[%{POSINT:[log][syslog][procid]}\]\:\s%{GREEDYDATA:filter_message}
+
+# OPNsense||pfSense RFC5424
+RFC5424 (%{INT:[log][syslog][version]}\s*)%{TIMESTAMP_ISO8601:[event][created]}\s%{SYSLOGHOST:[log][syslog][hostname]}\s%{PROG:[log][syslog][appname]}(\s%{POSINT:[log][syslog][procid]})?(\s\-\s\-\s?(\-\s)?)?(\s\-\s\[meta\ssequenceId\=(\\)?\"%{NUMBER:[event][sequence]}(\\)?\"\])?\s%{GREEDYDATA:filter_message}
+
+# CAPTIVE PORTAL (Optional)
+CAPTIVEPORTAL (%{CP_PFSENSE}|%{CP_OPNSENSE})
+CP_OPNSENSE %{WORD:[event][action]}\s%{GREEDYDATA:[client][user][name]}\s\(%{IP:[client][ip]}\)\s%{WORD:[observer][ingress][interface][alias]}\s%{INT:[observer][ingress][zone]}
+# ToDo - Clean-up pfSense GROK pattern below
+CP_PFSENSE (%{CAPTIVE1}|%{CAPTIVE2})
+CAPTIVE1 %{WORD:[observer][ingress][interface][alias]}:\s%{DATA:[observer][ingress][zone]}\s\-\s%{WORD:[event][action]}\:\s%{GREEDYDATA:[client][user][name]},\s%{MAC:[client][mac]},\s%{IP:[client][ip]}(,\s%{GREEDYDATA:[event][reason]})?
+CAPTIVE2 %{WORD:[observer][ingress][interface][alias]}:\s%{DATA:[observer][ingress][zone]}\s\-\s%{GREEDYDATA:[event][action]}\:\s%{GREEDYDATA:[client][user][name]},\s%{MAC:[client][mac]},\s%{IP:[client][ip]}(,\s%{GREEDYDATA:[event][reason]})?
+
+# SURICATA
+SURICATA (%{SURICATA_LOG}|%{SURICATA_NOTICE})
+SURICATA_LOG \[%{NUMBER:[suricata][rule][uuid]}:%{NUMBER:[suricata][rule][id]}:%{NUMBER:[suricata][rule][version]}\]%{SPACE}%{GREEDYDATA:[suricata][rule][description]}%{SPACE}\[Classification:%{SPACE}%{GREEDYDATA:[suricata][rule][category]}\]%{SPACE}\[Priority:%{SPACE}%{NUMBER:[suricata][priority]}\]%{SPACE}{%{WORD:[network][transport]}}%{SPACE}%{IP:[source][ip]}:%{NUMBER:[source][port]}%{SPACE}->%{SPACE}%{IP:[destination][ip]}:%{NUMBER:[destination][port]}
+SURICATA_NOTICE \[%{NUMBER:[event][code]}\]\s\<%{WORD:[event][action]}\>\s\-\-\s%{GREEDYDATA:[package][description]}
